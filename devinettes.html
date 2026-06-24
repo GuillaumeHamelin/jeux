@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Devinettes 😏</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #1a1118;
+    --surface: #231a22;
+    --border: #3d2b3a;
+    --rose: #e8638c;
+    --gold: #d4a853;
+    --text: #f0e6ee;
+    --muted: #9a7d95;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+
+  header h1 span {
+    color: var(--rose);
+    font-style: italic;
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 8px;
+    font-weight: 300;
+  }
+
+  .score-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+
+  .score-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 18px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+
+  .score-pill strong {
+    color: var(--gold);
+    font-weight: 500;
+  }
+
+  .progress-track {
+    flex: 1;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--rose), var(--gold));
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 36px 32px;
+    max-width: 520px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 160px; height: 160px;
+    background: radial-gradient(circle, rgba(232,99,140,0.12), transparent 70%);
+    pointer-events: none;
+  }
+
+  .question-num {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--rose);
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+
+  .question-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    line-height: 1.55;
+    color: var(--text);
+    margin-bottom: 28px;
+    font-style: italic;
+  }
+
+  .answers {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .answer-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .answer-btn:hover:not(:disabled) {
+    border-color: var(--rose);
+    background: rgba(232,99,140,0.06);
+    transform: translateX(4px);
+  }
+
+  .answer-btn.correct {
+    border-color: var(--gold);
+    background: rgba(212,168,83,0.1);
+    color: var(--gold);
+  }
+
+  .answer-btn.wrong {
+    border-color: #8b3a5c;
+    background: rgba(139,58,92,0.1);
+    color: #c06080;
+  }
+
+  .answer-btn:disabled { cursor: default; }
+
+  .reveal {
+    margin-top: 20px;
+    padding: 16px;
+    background: rgba(212,168,83,0.07);
+    border-left: 3px solid var(--gold);
+    border-radius: 0 10px 10px 0;
+    font-size: 0.9rem;
+    color: var(--gold);
+    line-height: 1.5;
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .next-btn {
+    display: none;
+    margin-top: 20px;
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--rose), #c2446e);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .next-btn:hover { opacity: 0.88; }
+
+  .result-screen {
+    display: none;
+    text-align: center;
+  }
+
+  .result-screen.active { display: block; }
+  .card.result .question-num, .card.result .question-text, .card.result .answers { display: none; }
+
+  .result-emoji {
+    font-size: 3.5rem;
+    margin-bottom: 16px;
+  }
+
+  .result-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin-bottom: 10px;
+    color: var(--gold);
+  }
+
+  .result-subtitle {
+    color: var(--muted);
+    font-size: 0.95rem;
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  .final-score {
+    font-size: 4rem;
+    font-weight: 700;
+    color: var(--rose);
+    margin: 16px 0;
+    font-family: 'Playfair Display', serif;
+  }
+
+  .restart-btn {
+    padding: 14px 36px;
+    background: transparent;
+    border: 1px solid var(--rose);
+    border-radius: 12px;
+    color: var(--rose);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .restart-btn:hover {
+    background: rgba(232,99,140,0.1);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Les <span>Devinettes</span> 😏</h1>
+  <p>Innocent en surface... à toi d'interpréter</p>
+</header>
+
+<div class="score-bar">
+  <div class="score-pill">Score : <strong id="scoreDisplay">0</strong></div>
+  <div class="progress-track">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
+  <div class="score-pill">Q <strong id="qNum">1</strong>/8</div>
+</div>
+
+<div class="card" id="card">
+  <div class="question-num" id="questionNum">Question 1</div>
+  <div class="question-text" id="questionText"></div>
+  <div class="answers" id="answersContainer"></div>
+  <div class="reveal" id="revealBox"></div>
+  <button class="next-btn" id="nextBtn">Suivante →</button>
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-emoji" id="resultEmoji"></div>
+    <div class="result-title" id="resultTitle"></div>
+    <div class="final-score" id="finalScore"></div>
+    <div class="result-subtitle" id="resultSubtitle"></div>
+    <button class="restart-btn" onclick="restart()">↺ Rejouer</button>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    q: "On le met dans la bouche, on le suce doucement, et à la fin il ne reste plus rien. C'est quoi ?",
+    answers: ["Un bonbon 🍬", "Un glaçon 🧊", "Une cerise 🍒", "Un chewing-gum 🫧"],
+    correct: 0,
+    reveal: "Un bonbon, évidemment ! Où était ton esprit ? 😄"
+  },
+  {
+    q: "Je rentre quand c'est mou, je ressors quand c'est dur. Je suis indispensable en cuisine. Qu'est-ce que je suis ?",
+    answers: ["Une spatule", "Un crochet de pâtissier", "Des pâtes 🍝", "Un tire-bouchon"],
+    correct: 2,
+    reveal: "Des pâtes ! Crues elles rentrent, cuites elles deviennent fermes. Classique. 😏"
+  },
+  {
+    q: "Plus c'est long, plus c'est bon. On le tient à deux mains et on mord dedans. C'est quoi ?",
+    answers: ["Un hot-dog 🌭", "Une baguette 🥖", "Un sandwich 🥪", "Une banane 🍌"],
+    correct: 1,
+    reveal: "Une baguette bien sûr ! La fierté française. 🥖"
+  },
+  {
+    q: "Il est chaud, humide, et on y entre en sueur. Qu'est-ce que c'est ?",
+    answers: ["Un sauna 🧖", "Un hammam", "Un jacuzzi", "Une serre 🌿"],
+    correct: 0,
+    reveal: "Un sauna ! Pour se détendre, naturellement. 🔥"
+  },
+  {
+    q: "Je vibre, je fais du bruit, et tout le monde m'utilise dans son lit le matin. Qui suis-je ?",
+    answers: ["Un ventilateur", "Un réveil 📱", "Une tondeuse", "Un sèche-cheveux"],
+    correct: 1,
+    reveal: "Le réveil du téléphone ! Ce son qu'on déteste mais dont on ne peut pas se passer. ⏰"
+  },
+  {
+    q: "On m'insère, on me tourne, et la porte s'ouvre. Je peux être petit ou très grand. C'est quoi ?",
+    answers: ["Un tournevis", "Une clé 🔑", "Un passe-partout", "Un code secret"],
+    correct: 1,
+    reveal: "Une clé ! Petite ou grande, elle ouvre tout. 🗝️"
+  },
+  {
+    q: "Je suis mouillée, on me frotte, et ensuite on me presse fort. On me retrouve souvent dans la cuisine. Qui suis-je ?",
+    answers: ["Une éponge 🧽", "Une serpillière", "Un torchon", "Une brosse"],
+    correct: 0,
+    reveal: "Une éponge ! Tu t'en doutais, non ? 😄"
+  },
+  {
+    q: "On m'ouvre en grand, on me referme doucement, et parfois je claque fort quand on est en colère. C'est quoi ?",
+    answers: ["Une fenêtre 🪟", "Une porte 🚪", "Un livre 📖", "Un clapet"],
+    correct: 1,
+    reveal: "Une porte ! Innocente... sauf quand elle claque 💥"
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function render() {
+  const q = questions[current];
+  document.getElementById('questionNum').textContent = `Question ${current + 1}`;
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('qNum').textContent = current + 1;
+  document.getElementById('progressFill').style.width = `${(current / questions.length) * 100}%`;
+  document.getElementById('revealBox').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'none';
+  answered = false;
+
+  const container = document.getElementById('answersContainer');
+  container.innerHTML = '';
+
+  q.answers.forEach((ans, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'answer-btn';
+    btn.textContent = ans;
+    btn.onclick = () => selectAnswer(i, q.correct, q.reveal);
+    container.appendChild(btn);
+  });
+}
+
+function selectAnswer(chosen, correct, reveal) {
+  if (answered) return;
+  answered = true;
+
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === correct) btn.classList.add('correct');
+    else if (i === chosen) btn.classList.add('wrong');
+  });
+
+  if (chosen === correct) score++;
+  document.getElementById('scoreDisplay').textContent = score;
+
+  const box = document.getElementById('revealBox');
+  box.textContent = chosen === correct ? `✅ ${reveal}` : `❌ ${reveal}`;
+  box.style.display = 'block';
+
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.style.display = 'block';
+  nextBtn.textContent = current < questions.length - 1 ? 'Suivante →' : 'Voir mon résultat 🎉';
+}
+
+document.getElementById('nextBtn').onclick = () => {
+  current++;
+  if (current >= questions.length) {
+    showResult();
+  } else {
+    render();
+  }
+};
+
+function showResult() {
+  document.getElementById('progressFill').style.width = '100%';
+  document.getElementById('answersContainer').style.display = 'none';
+  document.getElementById('questionNum').style.display = 'none';
+  document.getElementById('questionText').style.display = 'none';
+  document.getElementById('revealBox').style.display = 'none';
+  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'block';
+
+  const pct = score / questions.length;
+  let emoji, title, sub;
+
+  if (pct === 1) {
+    emoji = '🏆'; title = 'Esprit pur !';
+    sub = `${score}/${questions.length} — Tu as tout trouvé du premier coup. Ton esprit est d'une innocence remarquable... ou pas. 😏`;
+  } else if (pct >= 0.75) {
+    emoji = '😏'; title = 'Presque parfait·e';
+    sub = `${score}/${questions.length} — Tu t'en tires bien. Quelques devinettes t'ont résisté, mais ton imagination est bien active.`;
+  } else if (pct >= 0.5) {
+    emoji = '🤭'; title = 'Peut mieux faire';
+    sub = `${score}/${questions.length} — La moitié, c'est déjà ça. Mais quelques-unes t'ont bien eu·e, hein ?`;
+  } else {
+    emoji = '😈'; title = 'L\'esprit en mode caniveau';
+    sub = `${score}/${questions.length} — Tu avais la tête ailleurs, clairement. On ne te juge pas... enfin si, un peu. 😄`;
+  }
+
+  document.getElementById('resultEmoji').textContent = emoji;
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('finalScore').textContent = `${score}/${questions.length}`;
+  document.getElementById('resultSubtitle').textContent = sub;
+}
+
+function restart() {
+  current = 0; score = 0;
+  document.getElementById('scoreDisplay').textContent = 0;
+  document.getElementById('answersContainer').style.display = 'flex';
+  document.getElementById('questionNum').style.display = 'block';
+  document.getElementById('questionText').style.display = 'block';
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
